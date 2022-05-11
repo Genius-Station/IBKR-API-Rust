@@ -9,6 +9,7 @@ use std::vec::Vec;
 use ascii;
 use ascii::AsAsciiStr;
 
+use encoding::Encoding;
 use log::*;
 use num_derive::FromPrimitive;
 
@@ -225,9 +226,17 @@ pub fn read_msg<'a>(buf: &[u8]) -> Result<(usize, String, Vec<u8>), IBKRApiLibEr
     //debug!("read_msg: Message size: {:?}", size);
 
     if buf.len() - 4 >= size {
-        let text = String::from_utf8(buf[4..4 + size].to_vec()).unwrap();
-        //debug!("read_msg: text in read message: {:?}", text);
-        Ok((size, text, buf[4 + size..].to_vec()))
+        match String::from_utf8(buf[4..4 + size].to_vec()) {
+            Ok(text) => Ok((size, text, buf[4 + size..].to_vec())),
+            Err(e) => {
+                if cfg!(windows) {
+                    let text = encoding::all::WINDOWS_1252.decode(&buf[4 + size..], encoding::DecoderTrap::Strict).unwrap();
+                    Ok((size, text, buf[4 + size..].to_vec()))
+                } else {
+                    panic!("{}", e);
+                }
+            },
+        }
     } else {
         Ok((size, String::new(), buf.to_vec()))
     }
