@@ -178,8 +178,21 @@ where
         });
 
         thread::spawn(move || {
-            if decoder.run().is_err() {
-                panic!("decoder.run() failed!!");
+            loop {
+                match decoder.run() {
+                    Ok(_) => break,
+                    Err(err) => match err {
+                        IBKRApiLibError::ParseFloat(why) => {
+                            log::error!("{why:?}")
+                        },
+                        IBKRApiLibError::ParseInt(why) => {
+                            log::error!("{why:?}")
+                        },
+                        err => {
+                            panic!("New error: {:?}", err);
+                        }
+                    },
+                }
             }
         });
         *self.conn_state.lock().expect(POISONED_MUTEX) = ConnStatus::CONNECTED;

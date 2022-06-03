@@ -94,7 +94,11 @@ impl Reader {
             message_packet.extend_from_slice(remaining_messages.as_slice());
 
             if msg.as_str() != "" {
-                self.messages.send(msg).expect("READER CANNOT SEND MESSAGE");
+                if let Err(why) = self.messages.send(msg) {
+                    
+                    eprintln!("{:?}", why.0);
+                    panic!("READER CANNOT SEND MESSAGE")
+                }
             } else {
                 //Break to the outer loop in run and get another packet of messages.
 

@@ -2596,10 +2596,7 @@ where
         //This is the function that has the message loop.
         const CONN_STATE_POISONED: &str = "Connection state mutex was poisoned";
         info!("Starting run...");
-        // !self.done &&
         loop {
-            // debug!("Client waiting for message...");
-
             let text = self.msg_queue.recv();
             match text {
                 Result::Ok(val) => {
